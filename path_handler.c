@@ -136,7 +136,11 @@ void handle_dotdot(char* path, char* dest) {
 
 #endif
     /* Join tokens */
-    _joinToken(root, dest);
+    if (root == NULL) {
+        strcpy(dest, "");
+    } else {
+        _joinToken(root, dest);
+    }
     if (leading_slash) { /* Give back leading slash if there is*/
         memmove(dest + 1, dest, strlen(dest) + 1);
         memcpy(dest, "/", 1);
@@ -186,7 +190,7 @@ void _handleTest(char* input, char* output) {
 
 void test_dotdot() {
     _handleTest("/A/B/C", "/A/B/C");
-    // _handleTest("A/B/C/..", "A/B");
+    _handleTest("A/B/C/..", "A/B");
     _handleTest("A/..", NULL);
 }
 
