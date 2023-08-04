@@ -359,7 +359,7 @@ int execute_cd(char* file, char* argv[]){
                 fprintf(stderr, "cd: too many arguments\n");
                 return EXIT_FAILURE;
             }
-            if (token[0]=='-'){ /* Is a token */
+            if (token[0]=='-' && strcmp(token, "-")!=0){ /* Is a token */
                 if (strcmp(token, "-P")==0|| strcmp(token, "-L")==0)
                     option = token; 
                 else if (strcmp(token, "-LP")==0)

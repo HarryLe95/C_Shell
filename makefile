@@ -9,3 +9,9 @@ test_D:
 test:
 	gcc -Wall test_utils.c utils.c -o test.o 
 	./test.o
+
+minishell:
+	gcc -Wall minishell.c cd.c -o minishell.o 
+
+run: minishell 
+	./minishell.o

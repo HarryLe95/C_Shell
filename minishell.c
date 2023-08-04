@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
+#include "cd.h"
 #define NUMTOKENS 20 /* max number of command tokens */
 #define INSIZE 100   /* input buffer size */
 char line[INSIZE];   /* command input buffer */
@@ -72,10 +72,15 @@ int main(int argk, char* argv[], char* envp[])
                 break;
             }
             case 0: /* code executed only by child process */
-            {
-                exec_status = execvp(args[0], args);
+            {   
+                if (strcmp(args[0],"cd")==0)
+                    exec_status = execute_cd(args[0], args);
+                else
+                    exec_status = execvp(args[0], args);
+                
                 if (exec_status != 0) {
-                    perror("Forked process status failed");
+                    perror("Forked process status failed. Child process terminated");
+                    _exit(1);
                 }
             }
             default: /* code executed only by parent process */

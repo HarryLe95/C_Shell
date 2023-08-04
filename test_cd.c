@@ -2,7 +2,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "utils.h"
+#include "cd.h"
 
 struct stat st = {0};
 
