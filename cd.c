@@ -1,4 +1,4 @@
-#include "utils.h"
+#include "cd.h"
 
 Token* _createToken(char* value) {
     if (value == NULL) {
@@ -14,9 +14,9 @@ Token* _createToken(char* value) {
 void _deleteToken(Token* token) {
     if (token == NULL) return;
     _deleteToken(token->next);
-#ifdef DEBUG
-    printf("Free %s\n", token->value);
-#endif
+    #ifdef DEBUG
+        printf("Free %s\n", token->value);
+    #endif
     free(token);
 }
 
@@ -88,9 +88,9 @@ void handle_dotdot(char* path, char* dest) {
         if (next_token != NULL) next_token->prev = previous_token;
     }
 
-#ifdef DEBUG
-    printf("Pass tokenisation\n");
-#endif
+    #ifdef DEBUG
+        printf("Pass tokenisation\n");
+    #endif
 
     /* Remove . and .. */
     current_token = root;
@@ -100,9 +100,9 @@ void handle_dotdot(char* path, char* dest) {
         next_token = current_token->next;
         /* Handle . */
         if (strcmp(current_token->value, ".") == 0) {
-#ifdef DEBUG
-            printf("Processing %s\n", current_token->value);
-#endif
+            #ifdef DEBUG
+                        printf("Processing %s\n", current_token->value);
+            #endif
             if (next_token != NULL) next_token->prev = previous_token;
             if (previous_token != NULL) previous_token->next = next_token;
             current_token->next = NULL;
@@ -115,9 +115,9 @@ void handle_dotdot(char* path, char* dest) {
         if (current_token != NULL) {
             if (strcmp(current_token->value, "..") == 0) {
                 /* There is previous token that is not .. */
-#ifdef DEBUG
-                printf("Processing %s\n", current_token->value);
-#endif
+                #ifdef DEBUG
+                                printf("Processing %s\n", current_token->value);
+                #endif
                 if (previous_token != NULL &&
                     strcmp(previous_token->value, "..") != 0) {
                     Token* temp = previous_token->prev;
@@ -136,23 +136,23 @@ void handle_dotdot(char* path, char* dest) {
         if (current_token != NULL) previous_token = current_token;
         current_token = next_token;
 
-#ifdef DEBUG
-        if (previous_token != NULL)
-            printf("Prev: %s, ", previous_token->value);
-        else
-            printf("Prev: NULL, ");
-        if (next_token != NULL)
-            printf("Next: %s\n", next_token->value);
-        else
-            printf("Next: NULL\n");
-#endif
+        #ifdef DEBUG
+                if (previous_token != NULL)
+                    printf("Prev: %s, ", previous_token->value);
+                else
+                    printf("Prev: NULL, ");
+                if (next_token != NULL)
+                    printf("Next: %s\n", next_token->value);
+                else
+                    printf("Next: NULL\n");
+        #endif
     }
 
-#ifdef DEBUG
-    printf("Pass token filter\n");
-    printf("Print token from root: \n");
-    _printToken(root);
-#endif
+    #ifdef DEBUG
+        printf("Pass token filter\n");
+        printf("Print token from root: \n");
+        _printToken(root);
+    #endif
     /* Join tokens */
     if (root == NULL) {
         strcpy(dest, "");
@@ -167,9 +167,9 @@ void handle_dotdot(char* path, char* dest) {
     /* Free memory */
     _deleteToken(root);
 
-#ifdef DEBUG
-    printf("Final string: %s\n", dest);
-#endif
+    #ifdef DEBUG
+        printf("Final string: %s\n", dest);
+    #endif
 }
 
 /* Check if a directory exist
@@ -237,9 +237,9 @@ void process_CDPATH(char* CDPATH, char* PWD, char* CURPATH, char* dir) {
         /* Set CURPATH to path if path is a valid dir */
         if (dir_exists(path)) {
             strcpy(CURPATH, path);
-#ifdef DEBUG
-            printf("CDPATH matched: %s\n", path);
-#endif
+        #ifdef DEBUG
+                    printf("CDPATH matched: %s\n", path);
+        #endif
             break;
         }
         /* Process the next token */
@@ -250,7 +250,7 @@ void process_CDPATH(char* CDPATH, char* PWD, char* CURPATH, char* dir) {
     if (strcmp(CURPATH, "") == 0) sprintf(CURPATH, "%s/%s", PWD, dir);
 }
 
-void update_env_vars(char* curpath, char* pwd, char* oldpwd, char* option) {
+void update_env_vars(char* curpath, char* pwd, char* option) {
     if (curpath != NULL || strlen(curpath) != 0) {
         char _oldpwd[FILENAME_MAX + 10];
         char _pwd[FILENAME_MAX + 10];
@@ -265,10 +265,10 @@ void update_env_vars(char* curpath, char* pwd, char* oldpwd, char* option) {
             realpath(curpath, resolved_slink_path);
         handle_dotdot(resolved_slink_path, resolved_dotdot_path);
         /* Update variables */
-#ifdef DEBUG
-        printf("Before updating env: \n");
-        printf("PWD: %s, OLDPWD: %s\n", getenv("PWD"), getenv("OLDPWD"));
-#endif
+        #ifdef DEBUG
+                printf("Before updating env: \n");
+                printf("PWD: %s, OLDPWD: %s\n", getenv("PWD"), getenv("OLDPWD"));
+        #endif
         if (strcmp(resolved_dotdot_path, pwd) != 0) {
             strcpy(temp, PWD);
             sprintf(_pwd, "PWD=%s", resolved_dotdot_path);
@@ -276,10 +276,10 @@ void update_env_vars(char* curpath, char* pwd, char* oldpwd, char* option) {
             sprintf(_oldpwd, "OLDPWD=%s", temp);
             putenv(_oldpwd);
         }
-#ifdef DEBUG
-        printf("After updating env: \n");
-        printf("PWD: %s, OLDPWD: %s\n", getenv("PWD"), getenv("OLDPWD"));
-#endif
+        #ifdef DEBUG
+                printf("After updating env: \n");
+                printf("PWD: %s, OLDPWD: %s\n", getenv("PWD"), getenv("OLDPWD"));
+        #endif
     }
 }
 
@@ -291,7 +291,7 @@ void update_env_vars(char* curpath, char* pwd, char* oldpwd, char* option) {
     char* _option: either "-L" or "-P"
 
  */
-void cd(char* _dir, char* _option) {
+int cd(char* _dir, char* _option) {
     char dir[FILENAME_MAX];
     int status;
 
@@ -323,13 +323,75 @@ void cd(char* _dir, char* _option) {
     else
         process_CDPATH(CDPATH, PWD, CURPATH, dir);
 
-/* Perform a CD */
-#ifdef DEBUG
-    printf("Final CURPATH: %s\n", CURPATH);
-#endif
+    /* Perform a CD */
+    #ifdef DEBUG
+        printf("Final CURPATH: %s\n", CURPATH);
+    #endif
     status = chdir(CURPATH);
     if (status == 0)
-        update_env_vars(CURPATH, PWD, OLDPWD, _option);
-    else
-        fprintf(stderr, "cd error\n");
+        update_env_vars(CURPATH, PWD, _option);
+    else{
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
+int execute_cd(char* file, char* argv[]){
+    char *token;
+    char* dir= ""; 
+    char* option = "-L";
+    int index; 
+    int status;
+    int dFlag = 0; /* Whether dir has been provide */
+    index = 1;
+    token = argv[1];
+    #ifdef DEBUG 
+        printf("Token: %s\n", token);
+    #endif 
+    
+    /*Handle just cd */
+    if (token == NULL){
+    }
+    else{
+        while (token != NULL){
+            if (dFlag == 1){
+                errno = EINVAL;
+                fprintf(stderr, "cd: too many arguments\n");
+                return EXIT_FAILURE;
+            }
+            if (token[0]=='-'){ /* Is a token */
+                if (strcmp(token, "-P")==0|| strcmp(token, "-L")==0)
+                    option = token; 
+                else if (strcmp(token, "-LP")==0)
+                    option = "-P";
+                else if (strcmp(token, "-PL")==0)
+                    option = "-L";
+                else{
+                    errno = EINVAL;
+                    fprintf(stderr, "cd: %s: invalid option\n", token);
+                    fprintf(stderr, "cd: usage: cd [-L|-P] [dir]\n");
+                    return EXIT_FAILURE; 
+                }
+            }else{ /* Is a dir */
+                dFlag = 1;
+                dir = token;
+            }
+            index = index + 1;
+            token = argv[index];
+        }
+    }
+    
+    if (option==NULL)
+        option = "-L";
+    #ifdef DEBUG
+        printf("Executing 'cd(%s,%s)'\n", dir, option);
+    #endif
+    status = cd(dir, option);
+    if (status != EXIT_SUCCESS){
+        errno = ENOENT;
+        fprintf(stderr, "cd: %s: No such file or directory\n", dir);
+        return EXIT_FAILURE;
+    }
+    errno=0;
+    return EXIT_SUCCESS;
 }

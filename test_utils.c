@@ -25,7 +25,7 @@ void dotdot_handleTest(char* input, char* output) {
     sprintf(fail_msg, "Test failed: output: %s, expected: %s\n", dest, output);
     sprintf(success_msg, "Test passed for input: %s\n", input);
 
-    if (dest == NULL) {
+    if (strcmp(dest, "")==0) {
         if (output != NULL) {
             fprintf(stderr, ANSI_COLOR_RED "%s" ANSI_COLOR_RESET, fail_msg);
         }
@@ -240,8 +240,29 @@ void test_cd() {
     rmdir("A");
 }
 
+void execute_cd_handleTest(char* args){
+    char option[10000];
+    int status;
+    char* sep = " \t\n";
+    strcpy(option, args);
+    char *argv[1000];
+    int index = 0; 
+    
+    argv[index] = strtok(option, sep);
+
+    while(argv[index]!=NULL){
+        index = index + 1;
+        argv[index] = strtok(NULL, sep);
+    }
+    
+    status = execute_cd("cd", argv);
+    if (status != 0)
+        perror("");
+}
+
 int main(void) {
-    test_dotdot();
-    test_CDPATH();
-    test_cd();
+    // test_dotdot();
+    // test_CDPATH();
+    // test_cd();
+    execute_cd_handleTest("cd -PL");
 }

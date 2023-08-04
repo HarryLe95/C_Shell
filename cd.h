@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
+#include <errno.h>
 #ifndef FILENAME_MAX
 #define FILENAME_MAX 4096
 #endif
@@ -18,12 +18,13 @@
 #define FALSE 0
 #define PATHNUM_MAX 100
 
-static char *HOME;
-static char *UHOME;
-static char *CDPATH;
-static char *PWD;
-static char *OLDPWD;
-static char *CURPATH;
+char *HOME;
+char *UHOME;
+char *CDPATH;
+char *PWD;
+char *OLDPWD;
+char *CURPATH;
+int errno;
 
 typedef struct Token {
     char *value;
@@ -32,8 +33,6 @@ typedef struct Token {
 } Token;
 
 void handle_dotdot(char *, char *);
-
-int _dir_exists(char *);
 void process_CDPATH(char *, char *, char *, char *);
-
-void cd(char *, char *);
+int cd(char *, char *);
+int execute_cd(char* file, char* argv[]);
