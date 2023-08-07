@@ -78,7 +78,6 @@ int main(int argk, char* argv[], char* envp[])
     char* args[NUMTOKENS]; /* array of pointers to command line tokens */
     char* sep = " \t\n";   /* command line token separators    */
     int i;                 /* parse index */
-    int status; 
 
     /* prompt for and process one command line at a time  */
     while (1) { /* do Forever */
@@ -118,13 +117,12 @@ int main(int argk, char* argv[], char* envp[])
                 
                 if (exec_status != 0) {
                     perror("Forked process status failed. Child process terminated");
-                    exit(EXIT_FAILURE);            ;
+                    exit(0);            ;
                 }
             }
             default: /* code executed only by parent process */
             {
-                waitpid(fork_status, &status, 0); 
-                break;
+                waitpid(0,0,0); 
             }   
         } /* switch */
     }     /* while */
