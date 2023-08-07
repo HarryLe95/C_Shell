@@ -466,7 +466,7 @@ int cd(char* _dir, char* _option) {
     if (status == 0)
         update_env_vars(CURPATH, PWD, _option);
     else{
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
     return EXIT_SUCCESS;
 }
@@ -492,7 +492,7 @@ int execute_cd(char* file, char* argv[]){
             if (dFlag == 1){
                 errno = EINVAL;
                 fprintf(stderr, "cd: too many arguments\n");
-                return EXIT_FAILURE;
+                return EXIT_SUCCESS;
             }
             if (token[0]=='-' && strcmp(token, "-")!=0){ /* Is a token */
                 if (strcmp(token, "-P")==0|| strcmp(token, "-L")==0)
@@ -505,7 +505,7 @@ int execute_cd(char* file, char* argv[]){
                     errno = EINVAL;
                     fprintf(stderr, "cd: %s: invalid option\n", token);
                     fprintf(stderr, "cd: usage: cd [-L|-P] [dir]\n");
-                    return EXIT_FAILURE; 
+                    return EXIT_SUCCESS; 
                 }
             }else{ /* Is a dir */
                 dFlag = 1;
@@ -525,7 +525,7 @@ int execute_cd(char* file, char* argv[]){
     if (status != EXIT_SUCCESS){
         errno = ENOENT;
         fprintf(stderr, "cd: %s: No such file or directory\n", dir);
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
     errno=0;
     return EXIT_SUCCESS;
