@@ -1,7 +1,7 @@
 OUTDIR=out
 
 clean:
-	rm -rf $(OUTDIR)/*.out *.o
+	rm -rf $(OUTDIR)/*.out $(OUTDIR)/*.o *.out *.o
 	clear 
 
 test_D:
@@ -13,7 +13,7 @@ test:
 	./$(OUTDIR)/test.o
 
 minishell:
-	gcc -Wall minishell.c cd.c -o $(OUTDIR)/minishell.o 
+	gcc -Wall minishell.c -o $(OUTDIR)/minishell.o 
 
 run: minishell 
 	./$(OUTDIR)/minishell.o
