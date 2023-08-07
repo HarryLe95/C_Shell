@@ -123,6 +123,7 @@ int main(int argk, char* argv[], char* envp[])
             default: /* code executed only by parent process */
             {
                 wait_pid = wait(0);
+                wait_pid = wait_pid; 
                 // printf("%s done \n", args[0]);
                 break;
             }
