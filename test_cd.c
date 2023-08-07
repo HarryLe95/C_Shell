@@ -261,8 +261,8 @@ void execute_cd_handleTest(char* args){
 }
 
 int main(void) {
-    // test_dotdot();
-    // test_CDPATH();
-    // test_cd();
-    execute_cd_handleTest("cd -PL ~/Desktop");
+    test_dotdot();
+    test_CDPATH();
+    test_cd();
+    // execute_cd_handleTest("cd -PL ~/Desktop");
 }
