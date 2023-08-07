@@ -74,10 +74,11 @@ int main(int argk, char* argv[], char* envp[])
 {
     int fork_status;       /* value returned by fork sys call */
     int exec_status;       /* value returned by execv call */
-    int wait_pid;          /* value returned by wait */
+    // int wpid;          /* value returned by wait */
     char* args[NUMTOKENS]; /* array of pointers to command line tokens */
     char* sep = " \t\n";   /* command line token separators    */
     int i;                 /* parse index */
+    int status; 
 
     /* prompt for and process one command line at a time  */
     while (1) { /* do Forever */
@@ -122,9 +123,10 @@ int main(int argk, char* argv[], char* envp[])
             }
             default: /* code executed only by parent process */
             {
-                wait_pid = wait(0);
-                wait_pid = wait_pid;
-                // printf("%s done \n", args[0]);
+                waitpid(fork_status, &status, WUNTRACED); 
+                while (!WIFEXITED(status) && !WIFSIGNALED(status)){
+                    waitpid(fork_status, &status, WUNTRACED); 
+                }
                 break;
             }
         } /* switch */
