@@ -264,5 +264,5 @@ int main(void) {
     // test_dotdot();
     // test_CDPATH();
     // test_cd();
-    execute_cd_handleTest("cd -PL");
+    execute_cd_handleTest("cd -PL ~/Desktop");
 }

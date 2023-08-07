@@ -1,4 +1,5 @@
 #include "cd.h"
+#include <string.h>
 
 Token* _createToken(char* value) {
     if (value == NULL) {
@@ -297,7 +298,6 @@ int cd(char* _dir, char* _option) {
 
     /* Init Env Variables */
     HOME = getenv("HOME");
-    UHOME = getpwuid(getuid())->pw_dir;
     CURPATH = (char*)malloc(sizeof(char) * FILENAME_MAX);
     CDPATH = getenv("CDPATH");
     PWD = getenv("PWD");
@@ -305,10 +305,8 @@ int cd(char* _dir, char* _option) {
 
     /* If dir is null, set dir to HOME */
     if (_dir == NULL || strcmp(_dir, "~") == 0) {
-        if (HOME == NULL)
-            strcpy(dir, UHOME);
-        else
-            strcpy(dir, HOME);
+        strcpy(dir, HOME);
+    /* Set - to $OLDPWD */
     } else if (strcmp(_dir, "-") == 0) {
         strcpy(dir, OLDPWD);
     } else {
@@ -316,10 +314,13 @@ int cd(char* _dir, char* _option) {
     }
 
     /* Set CURPATH based on dir and CDPATH */
-    if (dir[0] == '/')
+    if (dir[0] == '/') // Handle cd /
         strcpy(CURPATH, dir);
-    else if (dir[0] == '.' || (dir[0] == '.' && dir[1] == '.'))
+    else if (dir[0] == '.' || (dir[0] == '.' && dir[1] == '.')) // Handle cd . or cd ..
         sprintf(CURPATH, "%s/%s", PWD, dir);
+    else if (dir[0] == '~' && dir[1] == '/'){ // Expand ~/directory
+        sprintf(CURPATH, "%s%s", HOME, dir+1);
+    }
     else
         process_CDPATH(CDPATH, PWD, CURPATH, dir);
 
@@ -381,7 +382,7 @@ int execute_cd(char* file, char* argv[]){
         }
     }
     
-    if (option==NULL)
+    if (option==NULL){}
         option = "-L";
     #ifdef DEBUG
         printf("Executing 'cd(%s,%s)'\n", dir, option);

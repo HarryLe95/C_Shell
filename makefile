@@ -1,17 +1,19 @@
+OUTDIR=out
+
 clean:
-	rm -rf *.out *.o
+	rm -rf $(OUTDIR)/*.out *.o
 	clear 
 
 test_D:
-	gcc -Wall test_utils.c utils.c -o test.o -DDEBUG
-	./test.o
+	gcc -Wall test_cd.c cd.c -o $(OUTDIR)/test.o -DDEBUG
+	./$(OUTDIR)/test.o
 
 test:
-	gcc -Wall test_utils.c utils.c -o test.o 
-	./test.o
+	gcc -Wall test_cd.c cd.c -o $(OUTDIR)/test.o 
+	./$(OUTDIR)/test.o
 
 minishell:
-	gcc -Wall minishell.c cd.c -o minishell.o 
+	gcc -Wall minishell.c cd.c -o $(OUTDIR)/minishell.o 
 
 run: minishell 
-	./minishell.o
+	./$(OUTDIR)/minishell.o
