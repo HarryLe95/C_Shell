@@ -105,7 +105,7 @@ int main(int argk, char* argv[], char* envp[])
         switch (fork_status = fork()) {
             case -1: /* fork returns error to parent process */
             {
-                perror("Fork failed");
+                // perror("Fork failed");
                 break;
             }
             case 0: /* code executed only by child process */
@@ -116,14 +116,14 @@ int main(int argk, char* argv[], char* envp[])
                     exec_status = execvp(args[0], args);
                 
                 if (exec_status != 0) {
-                    perror("Forked process status failed. Child process terminated");
+                    // perror("Forked process status failed. Child process terminated");
                     _exit(1);
                 }
             }
             default: /* code executed only by parent process */
             {
                 wait_pid = wait(0);
-                wait_pid = wait_pid; 
+                wait_pid = wait_pid;
                 // printf("%s done \n", args[0]);
                 break;
             }
@@ -466,7 +466,7 @@ int cd(char* _dir, char* _option) {
     if (status == 0)
         update_env_vars(CURPATH, PWD, _option);
     else{
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
 }
@@ -492,7 +492,7 @@ int execute_cd(char* file, char* argv[]){
             if (dFlag == 1){
                 errno = EINVAL;
                 fprintf(stderr, "cd: too many arguments\n");
-                return EXIT_SUCCESS;
+                return EXIT_FAILURE;
             }
             if (token[0]=='-' && strcmp(token, "-")!=0){ /* Is a token */
                 if (strcmp(token, "-P")==0|| strcmp(token, "-L")==0)
@@ -505,7 +505,7 @@ int execute_cd(char* file, char* argv[]){
                     errno = EINVAL;
                     fprintf(stderr, "cd: %s: invalid option\n", token);
                     fprintf(stderr, "cd: usage: cd [-L|-P] [dir]\n");
-                    return EXIT_SUCCESS; 
+                    return EXIT_FAILURE; 
                 }
             }else{ /* Is a dir */
                 dFlag = 1;
@@ -525,7 +525,7 @@ int execute_cd(char* file, char* argv[]){
     if (status != EXIT_SUCCESS){
         errno = ENOENT;
         fprintf(stderr, "cd: %s: No such file or directory\n", dir);
-        return EXIT_SUCCESS;
+        return EXIT_FAILURE;
     }
     errno=0;
     return EXIT_SUCCESS;
