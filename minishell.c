@@ -117,18 +117,15 @@ int main(int argk, char* argv[], char* envp[])
                     exec_status = execvp(args[0], args);
                 
                 if (exec_status != 0) {
-                    // perror("Forked process status failed. Child process terminated");
-                    _exit(EXIT_FAILURE);            ;
+                    perror("Forked process status failed. Child process terminated");
+                    exit(EXIT_FAILURE);            ;
                 }
             }
             default: /* code executed only by parent process */
             {
-                waitpid(fork_status, &status, WUNTRACED); 
-                while (!WIFEXITED(status) && !WIFSIGNALED(status)){
-                    waitpid(fork_status, &status, WUNTRACED); 
-                }
+                waitpid(fork_status, &status, 0); 
                 break;
-            }
+            }   
         } /* switch */
     }     /* while */
     return 0;
