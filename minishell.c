@@ -117,7 +117,7 @@ int main(int argk, char* argv[], char* envp[])
                 
                 if (exec_status != 0) {
                     // perror("Forked process status failed. Child process terminated");
-                    _exit(1);
+                    _exit(0);
                 }
             }
             default: /* code executed only by parent process */
