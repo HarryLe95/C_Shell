@@ -158,18 +158,18 @@ int main(int argk, char* argv[], char* envp[])
             default: /* code executed only by parent process */
             {
                 wpid = waitpid(0, NULL, WNOHANG | WUNTRACED);
-                Job* match = search(root, wpid);
-                if (match != NULL) {
-                    printf("[%d]+ Done      %s\n", match->jobID,
-                           match->command);
-                    if (head == match)
-                        head = head->prev;
-                    free_job(match);
-                }
-                if (bg) {
-                    head = make_job(head, command, pid);
-                    printf("[%d] %d\n", head->jobID, head->pid);
-                }
+                // Job* match = search(root, wpid);
+                // if (match != NULL) {
+                //     printf("[%d]+ Done      %s\n", match->jobID,
+                //            match->command);
+                //     if (head == match)
+                //         head = head->prev;
+                //     free_job(match);
+                // }
+                // if (bg) {
+                //     head = make_job(head, command, pid);
+                //     printf("[%d] %d\n", head->jobID, head->pid);
+                // }
             }
         } /* switch */
     }     /* while */
