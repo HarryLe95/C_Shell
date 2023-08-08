@@ -21,7 +21,8 @@
 #include <unistd.h>
 #define NUMTOKENS 20 /* max number of command tokens */
 #define INSIZE 100   /* input buffer size */
-char line[INSIZE];   /* command input buffer */
+#define JOBSIZE
+char line[INSIZE]; /* command input buffer */
 
 #ifndef FILENAME_MAX
     #define FILENAME_MAX 4096
@@ -50,10 +51,25 @@ typedef struct Token {
     struct Token* next;
 } Token;
 
+typedef struct Job {
+    char* command;
+    pid_t pid;
+    int jobID;
+    struct Job* next;
+    struct Job* prev;
+} Job;
+
+/* cd utility */
 void handle_dotdot(char*, char*);
 void process_CDPATH(char*, char*, char*, char*);
 int cd(char*, char*);
 int execute_cd(char* file, char* argv[]);
+
+/* job queue utility */
+Job* make_job(Job* head, char* command, pid_t pid);
+Job* search(Job* root, pid_t wpid);
+void free_job(Job* job);
+void free_all(Job* root);
 
 /*
         shell prompt
@@ -69,12 +85,16 @@ int main(int argk, char* argv[], char* envp[])
 /* envp - environment pointer */
 
 {
-    int pid;         /* value returned by fork sys call */
-    int exec_status; /* value returned by execv call */
-    // int wpid;          /* value returned by wait */
+    pid_t pid;             /* value returned by fork sys call */
+    int exec_status;       /* value returned by execv call */
+    pid_t wpid;            /* value returned by wait */
     char* args[NUMTOKENS]; /* array of pointers to command line tokens */
     char* sep = " \t\n";   /* command line token separators    */
-    int i;                 /* parse index */
+    int i, j;              /* parse index */
+    int bg;                /* background flag */
+    char command[FILENAME_MAX];
+    Job* root = make_job(NULL, "", getpid());
+    Job* head = root;
 
     /* prompt for and process one command line at a time  */
     while (1) { /* do Forever */
@@ -82,6 +102,7 @@ int main(int argk, char* argv[], char* envp[])
         prompt();
         fgets(line, INSIZE, stdin);
         fflush(stdin);
+        bg = 0;
 
         if (feof(stdin)) { /* non-zero on EOF  */
             // fprintf(stderr, "EOF pid %d feof %d ferror %d\n", getpid(),
@@ -97,14 +118,26 @@ int main(int argk, char* argv[], char* envp[])
             if (args[i] == NULL)
                 break;
         }
-        /* assert i is number of tokens + 1 */
-        /* fork a child process to exec the command in v[0] */
 
+        /* assert i is number of tokens + 1 */
+        i = i - 1;
+        if (strcmp(args[i], "&") == 0) {
+            args[i] = NULL;
+            bg = 1;
+        }
+
+        /* execute cd */
         if (strcmp(args[0], "cd") == 0) {
             exec_status = execute_cd(args[0], args);
             continue;
         }
 
+        strcpy(command, args[0]);
+        for (j = 1; j < i; j++) {
+            strcat(command, " ");
+            strcat(command, args[j]);
+        }
+        /* fork a child process to exec the command in v[0] */
         switch (pid = fork()) {
             case -1: /* fork returns error to parent process */
             {
@@ -124,10 +157,23 @@ int main(int argk, char* argv[], char* envp[])
             }
             default: /* code executed only by parent process */
             {
-                waitpid(0, 0, 0);
+                wpid = waitpid(0, NULL, WNOHANG | WUNTRACED);
+                Job* match = search(root, wpid);
+                if (match != NULL) {
+                    printf("[%d]+ Done      %s\n", match->jobID,
+                           match->command);
+                    if (head == match)
+                        head = head->prev;
+                    free_job(match);
+                }
+                if (bg) {
+                    head = make_job(head, command, pid);
+                    printf("[%d] %d\n", head->jobID, head->pid);
+                }
             }
         } /* switch */
     }     /* while */
+    free_all(root);
     return 0;
 } /* main */
 
@@ -541,4 +587,43 @@ int execute_cd(char* file, char* argv[]) {
     }
     errno = 0;
     return EXIT_SUCCESS;
+}
+
+/* Job utility */
+Job* make_job(Job* head, char* command, pid_t pid) {
+    Job* newJob = (Job*)malloc(sizeof(Job));
+    int id = -1;
+    if (head != NULL) {
+        head->next = newJob;
+        id = head->jobID;
+    }
+    newJob->prev = head;
+    newJob->command = command;
+    newJob->pid = pid;
+    newJob->jobID = id + 1;
+    newJob->next = NULL;
+    return newJob;
+}
+
+Job* search(Job* root, pid_t wpid) {
+    if (root != NULL) {
+        if (root->pid == wpid)
+            return root;
+        return search(root->next, wpid);
+    }
+    return NULL;
+}
+
+void free_job(Job* job) {
+    if (job->prev != NULL)
+        job->prev->next = job->next;
+    if (job->next != NULL)
+        job->next->prev = job->prev;
+    free(job);
+}
+
+void free_all(Job* root) {
+    if (root->next != NULL)
+        free_all(root->next);
+    free(root);
 }
