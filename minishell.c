@@ -85,16 +85,16 @@ int main(int argk, char* argv[], char* envp[])
 /* envp - environment pointer */
 
 {
-    pid_t pid;             /* value returned by fork sys call */
-    int exec_status;       /* value returned by execv call */
-    pid_t wpid;            /* value returned by wait */
+    pid_t pid;       /* value returned by fork sys call */
+    int exec_status; /* value returned by execv call */
+    // pid_t wpid;            /* value returned by wait */
     char* args[NUMTOKENS]; /* array of pointers to command line tokens */
     char* sep = " \t\n";   /* command line token separators    */
     int i, j;              /* parse index */
-    int bg;                /* background flag */
+    // int bg;                /* background flag */
     char command[FILENAME_MAX];
-    Job* root = make_job(NULL, "", getpid());
-    Job* head = root;
+    // Job* root = make_job(NULL, "", getpid());
+    // Job* head = root;
 
     /* prompt for and process one command line at a time  */
     while (1) { /* do Forever */
@@ -102,7 +102,7 @@ int main(int argk, char* argv[], char* envp[])
         prompt();
         fgets(line, INSIZE, stdin);
         fflush(stdin);
-        bg = 0;
+        // bg = 0;
 
         if (feof(stdin)) { /* non-zero on EOF  */
             // fprintf(stderr, "EOF pid %d feof %d ferror %d\n", getpid(),
@@ -123,7 +123,7 @@ int main(int argk, char* argv[], char* envp[])
         i = i - 1;
         if (strcmp(args[i], "&") == 0) {
             args[i] = NULL;
-            bg = 1;
+            // bg = 1;
         }
 
         /* execute cd */
@@ -157,7 +157,8 @@ int main(int argk, char* argv[], char* envp[])
             }
             default: /* code executed only by parent process */
             {
-                wpid = waitpid(0, NULL, WNOHANG | WUNTRACED);
+                waitpid(0, NULL, WNOHANG | WUNTRACED);
+                // wpid = waitpid(0, NULL, WNOHANG | WUNTRACED);
                 // Job* match = search(root, wpid);
                 // if (match != NULL) {
                 //     printf("[%d]+ Done      %s\n", match->jobID,
