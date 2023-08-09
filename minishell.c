@@ -119,7 +119,7 @@ int main(int argk, char *argv[], char *envp[])
         {
         case -1: /* fork returns error to parent process */
         {
-            perror("Fork failed");
+            // perror("Fork failed");
             break;
         }
         case 0: /* code executed only by child process */
