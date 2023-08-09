@@ -604,10 +604,6 @@ int main(int argk, char* argv[], char* envp[])
                 execvp(args[0], args);
                 continue;
             }
-            if (strcmp(args[0], "jobs") == 0) {
-                print_jobs(root);
-                continue;
-            }
         }
 
         pid = fork();
