@@ -650,5 +650,5 @@ int main(int argk, char* argv[], char* envp[])
             } /* switch */
         }     /* while */
     }
-    free_all(root);
+    // free_all(root);
 } /* main */
