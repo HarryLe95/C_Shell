@@ -44,6 +44,7 @@ char *OLDPWD;
 char *CURPATH;
 int errno;
 
+/* Token Class for Character expansion */
 typedef struct Token
 {
     char *value;
@@ -51,6 +52,9 @@ typedef struct Token
     struct Token *next;
 } Token;
 
+/* */
+
+/* CD Header Public methods */
 void handle_dotdot(char *, char *);
 void process_CDPATH(char *, char *, char *, char *);
 int cd(char *, char *);
@@ -139,6 +143,7 @@ int main(int argk, char *argv[], char *envp[])
     return 0;
 } /* main */
 
+/* CD IMPLEMENTATION */
 Token *_createToken(char *value)
 {
     if (value == NULL)
