@@ -592,7 +592,7 @@ int main(int argk, char* argv[], char* envp[])
         size = parse_command(line, args, sep);
         bg = get_command(args, size, command);
 
-        printf("Background mode: %d\n", bg);
+        // printf("Background mode: %d\n", bg);
         /* execute cd */
         if ((bg == 0)) {
             if (strcmp(args[0], "cd") == 0) {
