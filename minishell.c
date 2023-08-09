@@ -44,7 +44,6 @@ char *OLDPWD;
 char *CURPATH;
 int errno;
 
-/* Token Class for Character expansion */
 typedef struct Token
 {
     char *value;
@@ -109,12 +108,6 @@ int main(int argk, char *argv[], char *envp[])
         /* assert i is number of tokens + 1 */
         /* fork a child process to exec the command in v[0] */
 
-        if (strcmp(args[0], "cd") == 0)
-        {
-            exec_status = execute_cd(args[0], args);
-            continue;
-        }
-
         switch (fork_status = fork())
         {
         case -1: /* fork returns error to parent process */
@@ -124,13 +117,15 @@ int main(int argk, char *argv[], char *envp[])
         }
         case 0: /* code executed only by child process */
         {
-
-            exec_status = execvp(args[0], args);
+            if (strcmp(args[0], "cd") == 0)
+                exec_status = execute_cd(args[0], args);
+            else
+                exec_status = execvp(args[0], args);
 
             if (exec_status != 0)
             {
                 perror("Forked process status failed. Child process terminated");
-                exit(EXIT_FAILURE);
+                exit(0);
                 ;
             }
         }
@@ -143,7 +138,6 @@ int main(int argk, char *argv[], char *envp[])
     return 0;
 } /* main */
 
-/* CD IMPLEMENTATION */
 Token *_createToken(char *value)
 {
     if (value == NULL)
