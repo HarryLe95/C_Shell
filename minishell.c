@@ -564,20 +564,21 @@ int main(int argk, char* argv[], char* envp[])
 /* envp - environment pointer */
 
 {
-    int pid;               /* value returned by fork sys call */
-    int exec_status;       /* value returned by execv call */
-    int wpid;              /* value returned by wait */
+    int pid;         /* value returned by fork sys call */
+    int exec_status; /* value returned by execv call */
+    // int wpid;              /* value returned by wait */
     char* args[NUMTOKENS]; /* array of pointers to command line tokens */
     char* sep = " \t\n";   /* command line token separators    */
     int size;              /* parse index */
     int bg = 0;
     char command[FILENAME_MAX];
-    Job* root = make_job(NULL, "", getpid());
-    Job* head = root;
+    // Job* root = make_job(NULL, "", getpid());
+    // Job* head = root;
 
     /* prompt for and process one command line at a time  */
     while (1) { /* do Forever */
         /* Tokenise input command */
+        signal(SIGCHLD, SIG_IGN);
         prompt();
         fgets(line, INSIZE, stdin);
         fflush(stdin);
