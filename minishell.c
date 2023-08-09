@@ -601,7 +601,6 @@ int main(int argk, char* argv[], char* envp[])
             }
             if (strcmp(args[0], "sleep") == 0) {
                 execvp(args[0], args);
-                fflush(stdin);
                 continue;
             }
             if (strcmp(args[0], "jobs") == 0) {
@@ -622,7 +621,6 @@ int main(int argk, char* argv[], char* envp[])
             {
                 if (strcmp(args[0], "cd") == 0) {
                     exec_status = execute_cd(args[0], args);
-                    fflush(stdin);
                 } else {
                     exec_status = execvp(args[0], args);
                 }
@@ -637,21 +635,21 @@ int main(int argk, char* argv[], char* envp[])
             }
             default: /* code executed only by parent process */
             {
-                // waitpid(0, 0, 0);
-                wpid = waitpid(0, NULL, WNOHANG | WUNTRACED);
-                Job* match = search(root, wpid);
-                if (match != NULL) {
-                    printf("[%d]+ Done      %s\n", match->jobID,
-                           match->command);
-                    if (head == match)
-                        head = head->prev;
-                    free_job(match);
-                }
+                waitpid(0, 0, 0);
+                // wpid = waitpid(0, 0, WNOHANG | WUNTRACED);
+                // if (bg) {
+                //     head = make_job(head, command, pid);
+                //     printf("[%d] %d\n", head->jobID, head->pid);
+                // }
+                // Job* match = search(root, wpid);
+                // if (match != NULL) {
+                //     printf("[%d]+ Done                        %s\n",
+                //            match->jobID, match->command);
+                //     if (head == match)
+                //         head = head->prev;
+                //     free_job(match);
+                // }
 
-                if (bg) {
-                    head = make_job(head, command, pid);
-                    printf("[%d] %d\n", head->jobID, head->pid);
-                }
             } /* switch */
         }     /* while */
     }
