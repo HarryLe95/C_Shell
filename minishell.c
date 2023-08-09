@@ -51,92 +51,18 @@ typedef struct Token
     struct Token *next;
 } Token;
 
-/* */
-
 /* CD Header Public methods */
 void handle_dotdot(char *, char *);
 void process_CDPATH(char *, char *, char *, char *);
 int cd(char *, char *);
 int execute_cd(char *file, char *argv[]);
 
-/*
-        shell prompt
-*/
+/*shell prompt*/
 void prompt(void)
 {
     // fprintf(stdout   , "\n msh> ");
     fflush(stdout);
 }
-
-int main(int argk, char *argv[], char *envp[])
-/* argk - number of arguments */
-/* argv - argument vector from command line */
-/* envp - environment pointer */
-
-{
-    int fork_status; /* value returned by fork sys call */
-    int exec_status; /* value returned by execv call */
-    // int wpid;          /* value returned by wait */
-    char *args[NUMTOKENS]; /* array of pointers to command line tokens */
-    char *sep = " \t\n";   /* command line token separators    */
-    int i;                 /* parse index */
-
-    /* prompt for and process one command line at a time  */
-    while (1)
-    { /* do Forever */
-        /* Tokenise input command */
-        prompt();
-        fgets(line, INSIZE, stdin);
-        fflush(stdin);
-
-        if (feof(stdin))
-        { /* non-zero on EOF  */
-            // fprintf(stderr, "EOF pid %d feof %d ferror %d\n", getpid(),
-            // feof(stdin), ferror(stdin));
-            exit(0);
-        }
-        if (line[0] == '#' || line[0] == '\n' || line[0] == '\000')
-            continue; /* to prompt */
-
-        args[0] = strtok(line, sep);
-        for (i = 1; i < NUMTOKENS; i++)
-        {
-            args[i] = strtok(NULL, sep);
-            if (args[i] == NULL)
-                break;
-        }
-        /* assert i is number of tokens + 1 */
-        /* fork a child process to exec the command in v[0] */
-
-        switch (fork_status = fork())
-        {
-        case -1: /* fork returns error to parent process */
-        {
-            // perror("Fork failed");
-            break;
-        }
-        case 0: /* code executed only by child process */
-        {
-            if (strcmp(args[0], "cd") == 0)
-                exec_status = execute_cd(args[0], args);
-            else
-                exec_status = execvp(args[0], args);
-
-            if (exec_status != 0)
-            {
-                perror("Forked process status failed. Child process terminated");
-                exit(0);
-                ;
-            }
-        }
-        default: /* code executed only by parent process */
-        {
-            waitpid(0, 0, 0);
-        }
-        } /* switch */
-    }     /* while */
-    return 0;
-} /* main */
 
 Token *_createToken(char *value)
 {
@@ -596,3 +522,105 @@ int execute_cd(char *file, char *argv[])
     errno = 0;
     return EXIT_SUCCESS;
 }
+
+int get_command(char *args[], int size, char *command)
+{
+    int j;
+    int bg = 0;
+    /* Check for & */
+    if (strcmp(args[size - 1], "&") == 0)
+    {
+        size = size - 1;
+        args[size] = NULL;
+        bg = 1;
+    }
+    /* Save command */
+    strcpy(command, args[0]);
+    for (j = 1; j < size; j++)
+    {
+
+        strcat(command, " ");
+        strcat(command, args[j]);
+    }
+    return bg;
+}
+
+int main(int argk, char *argv[], char *envp[])
+/* argk - number of arguments */
+/* argv - argument vector from command line */
+/* envp - environment pointer */
+
+{
+    int fork_status; /* value returned by fork sys call */
+    int exec_status; /* value returned by execv call */
+    // int wpid;          /* value returned by wait */
+    char *args[NUMTOKENS]; /* array of pointers to command line tokens */
+    char *sep = " \t\n";   /* command line token separators    */
+    int size;              /* parse index */
+    int bg = 0;
+    char command[FILENAME_MAX];
+
+    /* prompt for and process one command line at a time  */
+    while (1)
+    { /* do Forever */
+        /* Tokenise input command */
+        prompt();
+        fgets(line, INSIZE, stdin);
+        fflush(stdin);
+
+        if (feof(stdin))
+        { /* non-zero on EOF  */
+            // fprintf(stderr, "EOF pid %d feof %d ferror %d\n", getpid(),
+            // feof(stdin), ferror(stdin));
+            exit(0);
+        }
+        if (line[0] == '#' || line[0] == '\n' || line[0] == '\000')
+            continue; /* to prompt */
+
+        /* Split line to tokens */
+        args[0] = strtok(line, sep);
+        for (size = 1; size < NUMTOKENS; size++)
+        {
+            args[size] = strtok(NULL, sep);
+            if (args[size] == NULL)
+                break;
+        }
+        bg = get_command(args, size, command);
+
+        /* execute cd */
+        if ((strcmp(args[0], "cd") == 0) && (bg == 0))
+        {
+            exec_status = execute_cd(args[0], args);
+            continue;
+        }
+
+        /* fork a child process to exec the command in v[0] */
+        switch (fork_status = fork())
+        {
+        case -1: /* fork returns error to parent process */
+        {
+            perror("Fork failed");
+            break;
+        }
+        case 0: /* code executed only by child process */
+        {
+            if (strcmp(args[0], "cd") == 0)
+                exec_status = execute_cd(args[0], args);
+            else
+                exec_status = execvp(args[0], args);
+
+            if (exec_status != 0)
+            {
+                perror("Forked process status failed. Child process terminated");
+                exit(0);
+                ;
+            }
+        }
+        default: /* code executed only by parent process */
+        {
+            waitpid(0, 0, 0);
+        }
+        } /* switch */
+    }     /* while */
+    return 0;
+} /* main */

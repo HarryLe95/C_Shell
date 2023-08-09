@@ -15,5 +15,11 @@ test:
 minishell:
 	gcc -Wall minishell.c -o $(OUTDIR)/minishell.o 
 
+minishell_D:
+	gcc -Wall minishell.c -o $(OUTDIR)/minishell.o -DDEBUG
+
 run: minishell 
+	./$(OUTDIR)/minishell.o
+
+run_D: minishell_D
 	./$(OUTDIR)/minishell.o
