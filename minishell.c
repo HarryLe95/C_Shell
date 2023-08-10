@@ -638,6 +638,9 @@ int main(int argk, char* argv[], char* envp[])
             }
             default: /* code executed only by parent process */
             {
+                if (bg == 0) {
+                    waitpid(pid, 0, 0);
+                }
                 while (1) {
                     wpid = waitpid(-1, NULL, WNOHANG);
                     if (wpid <= 0)
