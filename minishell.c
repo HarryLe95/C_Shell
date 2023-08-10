@@ -655,6 +655,7 @@ int main(int argk, char* argv[], char* envp[])
                 if (bg == 1) {
                     head = make_job(head, command, pid);
                     printf("[%d] %d\n", head->jobID, head->pid);
+                    fflush(stdin);
                 }
             }
         } /* switch */
