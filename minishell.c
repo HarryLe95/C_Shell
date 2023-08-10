@@ -482,6 +482,7 @@ typedef struct Job {
 } Job;
 
 /* Job utility */
+/* Instantiate a new job object */
 Job* make_job(Job* head, char* command, pid_t pid) {
     Job* newJob = (Job*)malloc(sizeof(Job));
     int id = -1;
@@ -497,6 +498,7 @@ Job* make_job(Job* head, char* command, pid_t pid) {
     return newJob;
 }
 
+/* Search job based on pid */
 Job* search(Job* root, pid_t wpid) {
     if (root != NULL) {
         if (root->pid == wpid)
@@ -506,6 +508,7 @@ Job* search(Job* root, pid_t wpid) {
     return NULL;
 }
 
+/* Delete completed job */
 void free_job(Job* job) {
     if (job->prev != NULL)
         job->prev->next = job->next;
@@ -514,12 +517,14 @@ void free_job(Job* job) {
     free(job);
 }
 
+/* Free all job queue metadata recursively*/
 void free_all(Job* root) {
     if (root->next != NULL)
         free_all(root->next);
     free(root);
 }
 
+/* Display the jobs in the job queue */
 void print_jobs(Job* root) {
     printf("[%d]\t%d\t\t%s\n", root->jobID, root->pid, root->command);
     if (root->next != NULL) {
@@ -527,6 +532,18 @@ void print_jobs(Job* root) {
     }
 }
 
+/*
+Split command (line) into tokens (args) based on separator (sep). Also
+return the size of the token array
+
+Args
+    char* line: command to parse 
+    char* args[]: array of tokens. Need to be preallocated by users 
+    char* sep: separator
+
+Return
+    int size: size of token array 
+*/
 int parse_command(char* line, char* args[], char* sep) {
     /* Split line to tokens */
     int size = 0;
@@ -539,6 +556,21 @@ int parse_command(char* line, char* args[], char* sep) {
     return size;
 }
 
+/*
+Join tokens in args to form command. If the last token is &, 
+it is set to NULL, and return true. Otherwise return False.
+
+Args: 
+    char* args[]: token array. May be mutated after the call.
+    int size: size of token array 
+    char* command: pointer to command. User is responsiblle to 
+    allocating the memory prior to function call. 
+
+Return: 
+    0: if the last token is not &. Set command to the concatenated tokens
+    1: if the last token ends with &. Set args[last] to NULL and set command
+    to the concatenated tokens. 
+*/
 int get_command(char* args[], int size, char* command) {
     int j;
     int bg = 0;
@@ -558,6 +590,11 @@ int get_command(char* args[], int size, char* command) {
     return bg;
 }
 
+/*
+-------------------------------------------------------------------------------
+MAIN PROGRAM STARTS HERE 
+-------------------------------------------------------------------------------
+*/
 int main(int argk, char* argv[], char* envp[])
 /* argk - number of arguments */
 /* argv - argument vector from command line */
@@ -570,10 +607,11 @@ int main(int argk, char* argv[], char* envp[])
     char* args[NUMTOKENS]; /* array of pointers to command line tokens */
     char* sep = " \t\n";   /* command line token separators    */
     int size;              /* parse index */
-    int bg = 0;
-    char command[FILENAME_MAX];
-    Job* root = make_job(NULL, "", getpid());
-    Job* head = root;
+    int bg = 0; /* flag for whether the command is to run in background mode*/
+    char command
+        [FILENAME_MAX]; /* filtered command. Removes & if the command ends with &*/
+    Job* root = make_job(NULL, "", getpid()); /* root of the job queue */
+    Job* head = root; /* pointer to the last added job */
     // int child_status = 10;
 
     /* prompt for and process one command line at a time  */
@@ -591,11 +629,16 @@ int main(int argk, char* argv[], char* envp[])
             continue; /* to prompt */
         }
 
+        /* Parse command into tokens stored in char* args[]. 
+        Also get the number of tokens stored in args 
+        */
         size = parse_command(line, args, sep);
+        /* Check if command is to be run in background -i.e. ends with & 
+        Store command without & in variable command
+        */
         bg = get_command(args, size, command);
 
-        // printf("Background mode: %d\n", bg);
-        /* execute cd */
+        /* execute cd and other limited builtin shell commands  */
         if ((bg == 0)) {
             if (strcmp(args[0], "cd") == 0) {
                 exec_status = execute_cd(args[0], args);
@@ -621,10 +664,10 @@ int main(int argk, char* argv[], char* envp[])
             }
             case 0: /* code executed only by child process */
             {
-                // printf("Background id: %d\n", getpid());
+                /* In case command is cd dir & */
                 if (strcmp(args[0], "cd") == 0) {
                     exec_status = execute_cd(args[0], args);
-                } else {
+                } else { /* Regular system call */
                     exec_status = execvp(args[0], args);
                 }
 
@@ -639,13 +682,18 @@ int main(int argk, char* argv[], char* envp[])
             default: /* code executed only by parent process */
             {
                 if (bg == 0) {
+                    /* If current command is not background, 
+                    wait for its finish first */
                     waitpid(pid, 0, 0);
                 }
-                while (1) {
+                while (1) { /* Catch any finishing background processes */
                     wpid = waitpid(-1, NULL, WNOHANG);
                     if (wpid <= 0)
                         break;
 
+                    /* Search for job in job queue with matching pid to 
+                    print command 
+                    */
                     Job* match = search(root, wpid);
                     if (match != NULL) {
                         printf("[%d]+ Done                        %s\n",
@@ -663,12 +711,6 @@ int main(int argk, char* argv[], char* envp[])
             }
         } /* switch */
     }     /* while */
-
+    /* Free all background processes metadata */
     free_all(root);
 } /* main */
-
-/* If it is background command, wait until all 
-SIGCHLD signals were collected. Otherwise 
-collect at the start
-
-*/
