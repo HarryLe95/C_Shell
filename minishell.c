@@ -574,7 +574,7 @@ int main(int argk, char* argv[], char* envp[])
     char command[FILENAME_MAX];
     Job* root = make_job(NULL, "", getpid());
     Job* head = root;
-    int child_status = 10;
+    // int child_status = 10;
 
     /* prompt for and process one command line at a time  */
     while (1) { /* do Forever */
