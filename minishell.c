@@ -564,21 +564,22 @@ int main(int argk, char* argv[], char* envp[])
 /* envp - environment pointer */
 
 {
-    int pid;         /* value returned by fork sys call */
-    int exec_status; /* value returned by execv call */
-    // int wpid;              /* value returned by wait */
+    int pid;               /* value returned by fork sys call */
+    int exec_status;       /* value returned by execv call */
+    int wpid;              /* value returned by wait */
     char* args[NUMTOKENS]; /* array of pointers to command line tokens */
     char* sep = " \t\n";   /* command line token separators    */
     int size;              /* parse index */
     int bg = 0;
     char command[FILENAME_MAX];
-    // Job* root = make_job(NULL, "", getpid());
-    // Job* head = root;
+    Job* root = make_job(NULL, "", getpid());
+    Job* head = root;
+    int child_status = 10;
 
     /* prompt for and process one command line at a time  */
     while (1) { /* do Forever */
         /* Tokenise input command */
-        signal(SIGCHLD, SIG_IGN);
+        // signal(SIGCHLD, SIG_IGN);
         prompt();
         fgets(line, INSIZE, stdin);
         fflush(stdin);
@@ -604,6 +605,10 @@ int main(int argk, char* argv[], char* envp[])
                 execvp(args[0], args);
                 continue;
             }
+            if (strcmp(args[0], "jobs") == 0) {
+                print_jobs(root);
+                continue;
+            }
         }
 
         pid = fork();
@@ -616,6 +621,7 @@ int main(int argk, char* argv[], char* envp[])
             }
             case 0: /* code executed only by child process */
             {
+                // printf("Background id: %d\n", getpid());
                 if (strcmp(args[0], "cd") == 0) {
                     exec_status = execute_cd(args[0], args);
                 } else {
@@ -632,23 +638,33 @@ int main(int argk, char* argv[], char* envp[])
             }
             default: /* code executed only by parent process */
             {
-                waitpid(0, 0, 0);
-                // wpid = waitpid(0, 0, WNOHANG | WUNTRACED);
-                // if (bg) {
-                //     head = make_job(head, command, pid);
-                //     printf("[%d] %d\n", head->jobID, head->pid);
-                // }
-                // Job* match = search(root, wpid);
-                // if (match != NULL) {
-                //     printf("[%d]+ Done                        %s\n",
-                //            match->jobID, match->command);
-                //     if (head == match)
-                //         head = head->prev;
-                //     free_job(match);
-                // }
+                while (1) {
+                    wpid = waitpid(-1, NULL, WNOHANG);
+                    if (wpid <= 0)
+                        break;
 
-            } /* switch */
-        }     /* while */
-    }
-    // free_all(root);
+                    Job* match = search(root, wpid);
+                    if (match != NULL) {
+                        printf("[%d]+ Done                        %s\n",
+                               match->jobID, match->command);
+                        if (head == match)
+                            head = head->prev;
+                        free_job(match);
+                    }
+                }
+                if (bg == 1) {
+                    head = make_job(head, command, pid);
+                    printf("[%d] %d\n", head->jobID, head->pid);
+                }
+            }
+        } /* switch */
+    }     /* while */
+
+    free_all(root);
 } /* main */
+
+/* If it is background command, wait until all 
+SIGCHLD signals were collected. Otherwise 
+collect at the start
+
+*/
